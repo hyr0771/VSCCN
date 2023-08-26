@@ -1,6 +1,6 @@
 
 clc; clear;
-load 3600_xgen_data.mat;
+load data.mat;
 % SET PARAMTER
 opts.alpha1 = 5;
 opts.alpha2 = 5;
