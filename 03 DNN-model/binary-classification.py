@@ -89,11 +89,11 @@ class EarlyStopping:
         self.val_loss_min = val_loss
 
 mrna = pd.read_csv(
-    '../data/VarianceOnboth/mrna.txt', sep='\t')
+    '../mrna.txt', sep='\t')
 mir = pd.read_csv(
-    '../data/VarianceOnboth/mirna.txt', sep='\t')
+    '../mirna.txt', sep='\t')
 clincal = pd.read_csv(
-    '../data/VarianceOnboth/xgen_label.txt', sep='\t')
+    '../label.txt', sep='\t')
 
 mrna.index = mrna['gene_name']
 del mrna['gene_name']
@@ -189,8 +189,6 @@ Lum_AB_mrna = change_label(Lum_AB_mrna)
 Lum_AB_mir = change_label(Lum_AB_mir)
 
 
-# Number of Module = 64
-
 class mtlAttention(nn.Module):
     def __init__(self, In_Nodes1, In_Nodes2, Modules):
         super(mtlAttention, self).__init__()
@@ -263,7 +261,7 @@ def model(omcis1, omcis2, learningRate, weightDecay):
     #     print('random is ',random_state)
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_state)
 
-    # 划分训练集、测试集，testsize = 0.2
+
     j = 0
     for train_index, test_index in skf.split(xg_data, label):
         Xg_train, Xg_test = xg_data[train_index, :], xg_data[test_index, :]
@@ -286,7 +284,7 @@ def model(omcis1, omcis2, learningRate, weightDecay):
     y_train = np.array(yg_train).flatten().astype(int)
     y_test = np.array(yg_test).flatten().astype(int)
 
-    # 输入数据转为tensor类型
+
     Xg = torch.tensor(Xg_train, dtype=torch.float32).cuda()
     Xm = torch.tensor(Xm_train, dtype=torch.float32).cuda()
 
@@ -295,7 +293,7 @@ def model(omcis1, omcis2, learningRate, weightDecay):
 
     y = torch.tensor(y_train, dtype=torch.float32).cuda()
 
-    # 对tensor进行打包
+
     ds = TensorDataset(Xg, Xm, y)
     loader = DataLoader(ds, batch_size=y_train.shape[0], shuffle=True)
 
