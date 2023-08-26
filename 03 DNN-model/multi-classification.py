@@ -290,14 +290,7 @@ for epoch in (range(num_epochs)):
 test1, test2 = net.forward_one(Xg_test.clone().detach(), Xm_test.clone().detach())
 test1 = test1.cpu().detach().numpy()
 test2 = test2.cpu().detach().numpy()
-'''
-print ("ACC_task1 %.3f, ACC_task2 %.3f" %(accuracy_score(list(y_test),np.where(test1 > 0.5, 1, 0) ),
-accuracy_score(list(y_test),np.where(test2 > 0.5, 1, 0))))
-print ("F1_task1 %.3f, F1_task2 %.3f" %(f1_score(list(y_test),np.where(test1 > 0.5, 1, 0)),
-f1_score(list(y_test),np.where(test2 > 0.5, 1, 0))))
-print ("AUC_task1 %.3f, AUC_task2 %.3f" %(roc_auc_score(y_test.reshape(-1),test1),
-roc_auc_score(y_test.reshape(-1),test2)))
-'''
+
 
 print("=====================================result===================================")
 print("pre_label:", cal_label((test1 + test2) / 2))
