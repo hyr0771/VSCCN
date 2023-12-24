@@ -89,22 +89,22 @@ class EarlyStopping:
         self.val_loss_min = val_loss
 
 mrna = pd.read_csv(
-    '../mrna.txt', sep='\t')
-mir = pd.read_csv(
-    '../mirna.txt', sep='\t')
+    '../data/mrna.txt', sep='\t')
+meth = pd.read_csv(
+    '../data/methna.txt', sep='\t')
 clincal = pd.read_csv(
-    '../label.txt', sep='\t')
+    '../data/label.txt', sep='\t')
 
 mrna.index = mrna['gene_name']
 del mrna['gene_name']
 
-mir.index = mir['gene_name']
-del mir['gene_name']
+meth.index = meth['gene_name']
+del meth['gene_name']
 
 mrna_feaure_num = 500
-mir_feaure_num = 300
+meth_feaure_num = 300
 mrna = mrna.iloc[:, :mrna_feaure_num]
-mir = mir.iloc[:, :mir_feaure_num]
+meth = meth.iloc[:, :meth_feaure_num]
 
 clincal.index = clincal['id']
 del clincal['id']
@@ -112,7 +112,7 @@ del clincal['id']
 label = clincal['label']
 
 mrna.insert(0, 'label', label)
-mir.insert(0, 'label', label)
+meth.insert(0, 'label', label)
 
 Basal_mrna = mrna[mrna['label'].values == 0]
 Her2_mrna = mrna[mrna['label'].values == 1]
@@ -123,14 +123,14 @@ print('Her2_mrna', Her2_mrna.shape)
 print('LumA_mrna', LumA_mrna.shape)
 print('LumB_mrna', LumB_mrna.shape)
 
-Basal_mir = mir[mir['label'].values == 0]
-Her2_mir = mir[mir['label'].values == 1]
-LumA_mir = mir[mir['label'].values == 2]
-LumB_mir = mir[mir['label'].values == 3]
-print('Basal_mir', Basal_mir.shape)
-print('Her2_mir', Her2_mir.shape)
-print('LumA_mir', LumA_mir.shape)
-print('LumB_mir', LumB_mir.shape)
+Basal_meth = meth[meth['label'].values == 0]
+Her2_meth = meth[meth['label'].values == 1]
+LumA_meth = meth[meth['label'].values == 2]
+LumB_meth = meth[meth['label'].values == 3]
+print('Basal_meth', Basal_meth.shape)
+print('Her2_meth', Her2_meth.shape)
+print('LumA_meth', LumA_meth.shape)
+print('LumB_meth', LumB_meth.shape)
 
 ###  数据基本处理
 
@@ -160,34 +160,36 @@ Her2_LumB_mrna = connect(Her2_mrna, LumB_mrna)
 
 Lum_AB_mrna = connect(LumA_mrna, LumB_mrna)
 
-Basal_Her2_mir = connect(Basal_mir, Her2_mir)
-Basal_LumA_mir = connect(Basal_mir, LumA_mir)
-Basal_LumB_mir = connect(Basal_mir, LumB_mir)
+Basal_Her2_meth = connect(Basal_meth, Her2_meth)
+Basal_LumA_meth = connect(Basal_meth, LumA_meth)
+Basal_LumB_meth = connect(Basal_meth, LumB_meth)
 
-Her2_LumA_mir = connect(Her2_mir, LumA_mir)
-Her2_LumB_mir = connect(Her2_mir, LumB_mir)
+Her2_LumA_meth = connect(Her2_meth, LumA_meth)
+Her2_LumB_meth = connect(Her2_meth, LumB_meth)
 
-Lum_AB_mir = connect(LumA_mir, LumB_mir)
+Lum_AB_meth = connect(LumA_meth, LumB_meth)
 
 ##  最终训练数据
 Basal_Her2_mrna = change_label(Basal_Her2_mrna)
-Basal_Her2_mir = connect(Basal_mir, Her2_mir)
+Basal_Her2_meth = connect(Basal_meth, Her2_meth)
 
 Basal_LumA_mrna = change_label(Basal_LumA_mrna)
-Basal_LumA_mir = change_label(Basal_LumA_mir)
+Basal_LumA_meth = change_label(Basal_LumA_meth)
 
 Basal_LumB_mrna = change_label(Basal_LumB_mrna)
-Basal_LumB_mir = change_label(Basal_LumB_mir)
+Basal_LumB_meth = change_label(Basal_LumB_meth)
 
 Her2_LumA_mrna = change_label(Her2_LumA_mrna)
-Her2_LumA_mir = change_label(Her2_LumA_mir)
+Her2_LumA_meth = change_label(Her2_LumA_meth)
 
 Her2_LumB_mrna = change_label(Her2_LumB_mrna)
-Her2_LumB_mir = change_label(Her2_LumB_mir)
+Her2_LumB_meth = change_label(Her2_LumB_meth)
 
 Lum_AB_mrna = change_label(Lum_AB_mrna)
-Lum_AB_mir = change_label(Lum_AB_mir)
+Lum_AB_meth = change_label(Lum_AB_meth)
 
+
+# Number of Module = 64
 
 class mtlAttention(nn.Module):
     def __init__(self, In_Nodes1, In_Nodes2, Modules):
@@ -261,7 +263,7 @@ def model(omcis1, omcis2, learningRate, weightDecay):
     #     print('random is ',random_state)
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=random_state)
 
-
+    # 划分训练集、测试集，testsize = 0.2
     j = 0
     for train_index, test_index in skf.split(xg_data, label):
         Xg_train, Xg_test = xg_data[train_index, :], xg_data[test_index, :]
@@ -284,7 +286,7 @@ def model(omcis1, omcis2, learningRate, weightDecay):
     y_train = np.array(yg_train).flatten().astype(int)
     y_test = np.array(yg_test).flatten().astype(int)
 
-
+    # 输入数据转为tensor类型
     Xg = torch.tensor(Xg_train, dtype=torch.float32).cuda()
     Xm = torch.tensor(Xm_train, dtype=torch.float32).cuda()
 
@@ -293,7 +295,7 @@ def model(omcis1, omcis2, learningRate, weightDecay):
 
     y = torch.tensor(y_train, dtype=torch.float32).cuda()
 
-
+    # 对tensor进行打包
     ds = TensorDataset(Xg, Xm, y)
     loader = DataLoader(ds, batch_size=y_train.shape[0], shuffle=True)
 
@@ -363,36 +365,12 @@ F1 = []
 AUC = []
 
 for i in range(0, 30):
-    acc, f1, auc = model(Basal_Her2_mrna, Basal_Her2_mir, 0.0001, 0.01)
+    acc, f1, auc = model(Basal_Her2_mrna, Basal_Her2_meth, 0.0001, 0.01)
     ACC.append(acc)
     F1.append(f1)
     AUC.append(auc)
 
 print("*******Basal_Her2********")
-print("*******ACC****************************************")
-print("mean ACC:", np.array(ACC).mean())
-print('acc list:\n', ACC)
-
-print("*******F1*****************************************")
-print("mean F1:", np.array(F1).mean())
-print('F1 list:\n', F1)
-
-print("*******AUC****************************************")
-print("mean AUC:", np.array(AUC).mean())
-print('AUC list:\n', AUC)
-
-#####  basal vs luma
-ACC = []
-F1 = []
-AUC = []
-
-for i in range(0, 30):
-    acc, f1, auc = model(Basal_LumA_mrna, Basal_LumA_mir, 0.005, 0.001)
-    ACC.append(acc)
-    F1.append(f1)
-    AUC.append(auc)
-
-print("*******basal_LUMA********")
 print("*******ACC****************************************")
 print("mean ACC:", np.array(ACC).mean())
 print('acc list:\n', ACC)
