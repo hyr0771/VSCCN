@@ -45,14 +45,14 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 # import data
 mrna = pd.read_csv('D:/data/mrna.txt', sep='\t')
-mir = pd.read_csv('D:/data/mirna.txt', sep='\t')
+meth = pd.read_csv('D:/data/meth.txt', sep='\t')
 clincal = pd.read_csv('D:/data/label.txt', sep='\t')
 
 mrna.index = mrna['gene_name']
 del mrna['gene_name']
 
-mir.index = mir['gene_name']
-del mir['gene_name']
+meth.index = meth['gene_name']
+del meth['gene_name']
 
 clincal.index = clincal['id']
 del clincal['id']
@@ -60,19 +60,19 @@ del clincal['id']
 label = clincal['label']
 
 # select  genes with higher weight from FGL-SCCA
-mrna_feature_num = 400
-mir_feature_num = 200
+mrna_feature_num = mrna_num
+meth_feature_num = meth_num
 mrna = mrna.iloc[:, :mrna_feature_num]
-mir = mir.iloc[:, :mir_feature_num]
+meth = meth.iloc[:, :meth_feature_num]
 mrna = mrna.iloc[:, :mrna_feature_num]
-mir = mir.iloc[:, :mir_feature_num]
+meth = meth.iloc[:, :meth_feature_num]
 
 mrna = mrna.values
-mir = mir.values
+meth = meth.values
 
 min_max_scaler = preprocessing.MinMaxScaler()
 mrna = min_max_scaler.fit_transform(mrna)
-mir = min_max_scaler.fit_transform(mir)
+meth = min_max_scaler.fit_transform(meth)
 label = label.values
 
 class EarlyStopping:
@@ -187,12 +187,12 @@ class mtlAttention(nn.Module):
         return xg, xm
 
 
-n_SKFold = KFold(n_splits=5, shuffle=True,random_state = 488)
+n_SKFold = KFold(n_splits=5, shuffle=True,random_state = 318)
 
 j = 0
 for train_index, test_index in n_SKFold.split(mrna):
     Xg_train, Xg_test = mrna[train_index, :], mrna[test_index, :]
-    Xm_train, Xm_test = mir[train_index, :], mir[test_index, :]
+    Xm_train, Xm_test = meth[train_index, :], meth[test_index, :]
     yg_train, yg_test = label[train_index], label[test_index]
     j = j + 1
     if j == 1:
@@ -221,9 +221,9 @@ train_losses, test_losses = [], []
 start = time.time()
 
 
-earlyStoppingPatience = 1000
+earlyStoppingPatience = 100
 learningRate = 0.001
-weightDecay = 0.0001
+weightDecay = 0.001
 num_epochs = 300000
 
 y_train = np.array(yg_train).flatten().astype(int)
@@ -293,11 +293,7 @@ test2 = test2.cpu().detach().numpy()
 
 
 print("=====================================result===================================")
-print("pre_label:", cal_label((test1 + test2) / 2))
-print("ture_label:", y_test)
-print("------------------------------------")
 print("ACC:", accuracy_score(y_test, cal_label((test1 + test2) / 2)))
 print("F1:", f1_score(y_test, cal_label((test1 + test2) / 2), average='macro'))
-
 print("time :", time.time() - start)
 print("==================================================exit========================")
